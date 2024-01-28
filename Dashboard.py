@@ -402,7 +402,6 @@ def on_message(client, userdata, message):
             cv.waitKey(1)
 
         if command == "picture":
-            #print("recibo picture")
             img = base64.b64decode(message.payload)
             myCameraController.putPicture(img)
 

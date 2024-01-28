@@ -8,6 +8,7 @@ from geographiclib.geodesic import Geodesic
 import requests
 from datetime import datetime as dt
 import os.path as path
+import time
 from bson import ObjectId
 
 from tkinter.filedialog import asksaveasfile, askopenfilename
@@ -32,18 +33,13 @@ class VideoPlayer(tk.Toplevel):
         if path.exists(f"Videos/{file_name}"):
             self.media = self.instance.media_new(f"Videos/{file_name}")
         else:
-            #response = requests.get(f"http://127.0.0.1:9000/media/videos/{file_name}")
+            messagebox.showinfo(message="Downloading the video. Please wait patiently", title="Video")
+            time.sleep(1)
             response = requests.get(f"http://147.83.249.79:8105/media/videos/{file_name}")
             if response.status_code == 200:
                 with open(f"Videos/{file_name}", "wb") as file:
                     file.write(response.content)
                     self.media = self.instance.media_new(f"Videos/{file_name}")
-        # try:
-        #     self.media = self.instance.media_new(f"http://127.0.0.1:9000/media/videos/{file_name}")
-        # except Exception as e:
-
-        # self.media = self.instance.media_new(f"http://127.0.0.1:9000/media/videos/{file_name}")
-        # self.media = self.instance.media_new(file_name)
         self.media_player.set_media(self.media)
 
         self.video_frame = tk.Frame(self, bg="black")
@@ -416,6 +412,8 @@ class FlightPlanDesignerWindow:
         self.state = 'waiting'
 
     def showTelemetryInfo(self, telemetyInfo):
+        global flightPlanEnded
+
         if not self.closed:
             if self.mode != 4:
                 self.myTelemetryInfoFrameClass.showTelemetryInfo(telemetyInfo)
@@ -434,6 +432,7 @@ class FlightPlanDesignerWindow:
                     color = "red"
                 elif state == "returningHome":
                     color = "brown"
+                    flightPlanEnded = True
                 self.canvas.itemconfig(self.dronePositionId, fill=color)
                 self.canvas.coords(
                     self.dronePositionId,
@@ -460,6 +459,9 @@ class FlightPlanDesignerWindow:
     """
 
     def openWindowToCreateFlightPlan(self):
+        global flightPlanEnded
+
+        flightPlanEnded = False
         self.newWindow = tk.Toplevel(self.frame)
         if self.mode == 0:
             self.newWindow.title("Load flight plan")
@@ -512,7 +514,7 @@ class FlightPlanDesignerWindow:
         self.controlFrame.rowconfigure(4, weight=1)
         self.controlFrame.columnconfigure(0, weight=1)"""
 
-        self.controlFrame.grid(row=1, column=1, rowspan=4, padx=10)
+        self.controlFrame.grid(row=1, column=1, rowspan=5, padx=10)
         if self.mode == 0 or self.mode == 1:
             self.clearButton = tk.Button(
                 self.controlFrame,
@@ -533,7 +535,7 @@ class FlightPlanDesignerWindow:
                 fg="black",
                 command=self.runButtonClick,
             )
-            runButton.grid(row=1, column=0, padx=10, pady=20)
+            runButton.grid(row=1, column=0, padx=10, pady=10)
             saveButton = tk.Button(
                 self.controlFrame,
                 height=5,
@@ -543,17 +545,27 @@ class FlightPlanDesignerWindow:
                 fg="white",
                 command=self.saveButtonClick,
             )
-            saveButton.grid(row=2, column=0, padx=10, pady=20)
+            saveButton.grid(row=2, column=0, padx=10, pady=10)
             sendFlightPlan = tk.Button(
                 self.controlFrame,
                 height=5,
                 width=10,
                 text="Save in Drone",
-                bg="#B7BBB6",
+                bg="#008000",
                 fg="white",
                 command=self.sendFlightPlanAir,
             )
-            sendFlightPlan.grid(row=3, column=0, padx=10, pady=20)
+            sendFlightPlan.grid(row=3, column=0, padx=10, pady=10)
+            sendMediaApi = tk.Button(
+                self.controlFrame,
+                height=5,
+                width=10,
+                text="Save Media",
+                bg="#FFC0CB",
+                fg="black",
+                command=self.sendMediaApi,
+            )
+            sendMediaApi.grid(row=4, column=0, padx=10, pady=10)
             closeButton = tk.Button(
                 self.controlFrame,
                 height=5,
@@ -563,7 +575,7 @@ class FlightPlanDesignerWindow:
                 fg="white",
                 command=self.closeWindowToToCreateFlightPlan,
             )
-            closeButton.grid(row=4, column=0, padx=10, pady=20)
+            closeButton.grid(row=5, column=0, padx=10, pady=10)
 
         elif self.mode == 2 or self.mode == 3:
             self.sliderFrame = tk.LabelFrame(
@@ -650,19 +662,6 @@ class FlightPlanDesignerWindow:
                 command=self.clear,
             )
             clearButton.grid(row=2, column=0, padx=10, pady=20)
-        #if self.mode == 4:
-        #    self.displayPreviousFlights()
-        #    viewImagesButton = tk.Button(
-        #        self.controlFrame,
-        #        height=5,
-        #        width=10,
-        #        text="View Images",
-        #        bg="#FB6542",
-        #        fg="white",
-        #        command=self.openImagesWindow,
-        #    )
-        #    viewImagesButton.grid(row=4, column=0, padx=10, pady=20)
-        #else:
         if self.mode != 4:
             self.wpWindow = WaypointsWindow()
             self.wpFrame = self.wpWindow.buildFrame(self.newWindow)
@@ -789,11 +788,10 @@ class FlightPlanDesignerWindow:
     def runButtonClick(self):
         global flightplan_id_ground
         global flightplan_id_drone
+
         waypoints = self.wpWindow.getWaypoints(self.waypointsIds, self.canvas)
         print("waypoints ", waypoints)
         waypoints_json = json.dumps(waypoints)
-        #response_json = requests.get('http://192.168.208.6:9000/get_flight_plan/' + flightplan_id).json()
-        #response_json = requests.get('http://127.0.0.1:9000/get_flight_plan/' + flightplan_id_ground).json()
         response_json = requests.get('http://147.83.249.79:8105/get_flight_plan/' + flightplan_id_ground).json()
         numPictures = len(response_json["PicsWaypoints"])
         numVideos = len(response_json["VidWaypoints"])
@@ -805,7 +803,6 @@ class FlightPlanDesignerWindow:
         }
         headers = {'Content-Type': 'application/json'}
         print("Sending data:", data)
-        #url = 'http://192.168.208.6:9000/get_flight_plan/' + title_flightplan
         response = requests.get('http://192.168.208.6:9000/get_flight_plan/' + response_json["Title"]).json()
         if response == None:
             data_flightplan = {
@@ -829,24 +826,8 @@ class FlightPlanDesignerWindow:
             "NumPics": numPictures,
             "NumVids": numVideos
         }
-            #headers = {'Content-Type': 'application/json'}
         response_air = requests.post('http://192.168.208.6:9000/add_flight', json=data, headers=headers)
         flight_id = response_air.json()["id"]
-        #response_json = requests.get('http://127.0.0.1:9000/get_flight/' + flight_id).json()
-        """
-        response_json = requests.get('http://192.168.208.6:9000/get_flight/' + flight_id).json()
-        dataFlight = {
-            "Date": response_json["Date"],
-            "startTime": response_json["startTime"],
-            "GeofenceActive": response_json["GeofenceActive"],
-            "Flightplan": flightplan_id_ground,
-            "NumPics": response_json["NumPics"],
-            "Pictures": response_json["Pictures"],
-            "NumVids": response_json["NumVids"],
-            "Videos": response_json["Videos"]
-        }
-        response = requests.post('http://127.0.0.1:9000/add_flight', json=dataFlight, headers=headers)
-        """
         self.client.publish("dashBoard/autopilotService/executeFlightPlan/" + flight_id, json.dumps({"id": flightplan_id_ground, "waypoints": waypoints_json}))
 
         self.dronPositionx = self.originlat
@@ -867,10 +848,7 @@ class FlightPlanDesignerWindow:
         global flightplan_id_ground
         waypoints = self.wpWindow.getWaypoints(self.waypointsIds, self.canvas)
         print("waypoints ", waypoints)
-        # response_json = requests.get('http://192.168.208.6:9000/get_flight_plan/' + flightplan_id).json()
-        # response_json = requests.get('http://127.0.0.1:9000/get_flight_plan/' + flightplan_id_ground).json()
         response_json = requests.get('http://147.83.249.79:8105/get_flight_plan/' + flightplan_id_ground).json()
-        # url = 'http://192.168.208.6:9000/get_flight_plan/' + title_flightplan
         response = requests.get('http://192.168.208.6:9000/get_flight_plan/' + response_json["Title"]).json()
         if response == None:
             data_flightplan = {
@@ -883,13 +861,22 @@ class FlightPlanDesignerWindow:
             headers = {"Content-Type": "application/json"}
             requests.post("http://192.168.208.6:9000/add_flightplan", json=data_flightplan,
                                          headers=headers)
-            #flightplan_id_drone = response_air.json()["id"]
-            #response = requests.get('http://192.168.208.6:9000/get_flight_plan/' + response_json["Title"]).json()
             messagebox.showinfo(message="Flight plan has been saved in the drone", title="Flight plan")
         else:
             messagebox.showinfo(message="Flight plan already saved in the drone", title="Flight plan")
-            #flightplan_id_drone = response["_id"]
 
+    def sendMediaApi(self):
+        global flightPlanEnded
+
+        if flightPlanEnded:
+            self.client.publish("dashBoard/autopilotService/saveMediaApi")
+            messagebox.showinfo(message="Media has been requested to the drone, and is being saved in ground backend", title="Saving Media")
+            flightPlanEnded = False
+        else:
+            messagebox.showerror(message="Media can't be saved as there's any available",
+                title="Error",
+                parent=self.newWindow,
+            )
     def clear(self):
         self.firstPoint = True
         self.secondPoint = False
@@ -1017,14 +1004,11 @@ class FlightPlanDesignerWindow:
             "VidInterval": vid_interval,
         }
         print("Sending data:", data)
-        #response = requests.post('http://192.168.208.6:9000/add_flightplan', json=data, headers=headers)
         headers = {"Content-Type": "application/json"}
         response = requests.post(
-            #"http://127.0.0.1:9000/add_flightplan", json=data, headers=headers
             "http://147.83.249.79:8105/add_flightplan", json = data, headers = headers
         )
         flightplan_id_ground = response.json()["id"]
-        # print(response.json())
         if response.json()["success"] == True:
             messagebox.showinfo(message="Flight plan saved", title="File save")
         else:
@@ -1055,10 +1039,7 @@ class FlightPlanDesignerWindow:
         self.newWindow.focus_force()
 
     def populate_table(self):
-        #flights = requests.get("http://192.168.208.6:9000/get_all_flights").json()
-        #flights = requests.get("http://127.0.0.1:9000/get_all_flights").json()
         flights = requests.get("http://147.83.249.79:8105/get_all_flights").json()
-
 
         for flight in flights:
             timestamp = flight["startTime"]["$date"] / 1000
@@ -1152,6 +1133,7 @@ class FlightPlanDesignerWindow:
         self.pfFrame.grid(row=2, column=2, padx=10, pady=10)
 
     def drawFlightPlan(self, waypoints):
+        # Global variables added to be able to select one flight after selecting another, and not duplicating their representation inside the map
         global ovals_ids
         global texts_ids
         global lines_ids
@@ -1322,16 +1304,11 @@ class FlightPlanDesignerWindow:
         self.clear()
         self.canvas.delete(self.instructionsTextId)
         self.canvas.delete(self.instructionsBackground)
-        #flightPlans = requests.get('http://192.168.208.6:9000/get_all_flightPlans').json()['Waypoints']
-        #flightPlans = requests.get("http://127.0.0.1:9000/get_all_flightPlans").json()[
-        #    "Waypoints"
-        #]
         flightPlans = requests.get("http://147.83.249.79:8105/get_all_flightPlans").json()[
             "Waypoints"
         ]
         print("flightPlans ", flightPlans)
 
-        # print(waypoints)
         def on_select(event):
             global flightplan_id_ground
             item = tree.selection()[0]
@@ -1441,16 +1418,12 @@ class FlightPlanDesignerWindow:
             print(f"The image searched is: {image_name}")
             image = Image.open(f"Pictures/{image_name}")
         else:
-            #response = requests.get(f"http://127.0.0.1:9000/media/pictures/{file_name}")
             response = requests.get(f"http://147.83.249.79:8105/media/pictures/{image_name}")
             if response.status_code == 200:
                 with open(f"Pictures/{image_name}", "wb") as file:
                     file.write(response.content)
                 image_data = response.content
                 image = Image.open(BytesIO(image_data))
-        #response = requests.get(f"http://127.0.0.1:9000/media/pictures/{file_name}")
-        #image_data = response.content
-        #image = Image.open(BytesIO(image_data))
 
         # Resize the image if needed
         max_size = (800, 800)
@@ -1488,7 +1461,6 @@ class FlightPlanDesignerWindow:
             if path.exists(f"Pictures/{image_name}"):
                 image = Image.open(f"Pictures/{image_name}")
             else:
-                #response = requests.get(f"http://127.0.0.1:9000/media/pictures/{image_name}")
                 response = requests.get(f"http://147.83.249.79:8105/media/pictures/{image_name}")
                 if response.status_code == 200:
                     with open(f"Pictures/{image_name}", "wb") as file:
@@ -2008,24 +1980,6 @@ class FlightPlanDesignerWindow:
                                 for video in self.currentFlightData["Videos"]:
                                     if video["latStart"] == matching_waypoint["lat"] and video["lonStart"] == matching_waypoint["lon"]:
                                         static_video_path = video["nameVideo"]
-                                        #if not path.isfile(static_video_path):
-                                        #    response_json = requests.get('http://127.0.0.1:9000/media/videos/'+video["nameVideo"]).json()
-                                        #    video_bytes = response_json.body()
-                                        #    vid_route = "E:\TFG\Alejandro Final\DashboardDEE/Videos/" + video["nameVideo"]
-                                        #    try:
-                                        #        with open(vid_route, 'wb') as file:
-                                        #            file.write(video_bytes)
-                                        #    except Exception as e:
-                                        #        print(f"Error al guardar el video: {e}")
-
-                                #static_video_path = next(
-                                #    (
-                                #        video["path"]
-                                #        for video in self.currentFlightData["Videos"]
-                                #        if video["lat"] == matching_waypoint["lat"] and video["lon"] == matching_waypoint["lon"]
-                                #    ),
-                                #    None,
-                                #)
                                 if static_video_path:
                                     self.display_video(static_video_path)
                             elif item_color == "orange":
@@ -2035,15 +1989,6 @@ class FlightPlanDesignerWindow:
                                 for picture in self.currentFlightData["Pictures"]:
                                     if picture["lat"] == matching_waypoint["lat"] and picture["lon"] == matching_waypoint["lon"]:
                                         picture_path = picture["namePicture"]
-                                #picture_path = next(
-                                #    (
-                                #        picture["path"]
-                                #        for picture in self.currentFlightData["Pictures"]
-                                #            if picture["lat"] == matching_waypoint["lat"] and picture["lon"] == matching_waypoint["lon"]
-                                #
-                                #    ),
-                                #    None,
-                                #)
                                 if picture_path!= "":
                                     self.display_image(picture_path)
 
