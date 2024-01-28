@@ -1,10 +1,11 @@
 # Dashboard (Desktop Application)
-![dashboardDemo](https://user-images.githubusercontent.com/100842082/213115045-5d912126-e94c-4f48-93bd-4e28fc3db477.png)
+![dashboardDemo](https://github.com/JordiLlaveria/DashboardDEE/blob/manager/assets/FlightPlan.PNG)
 
 The Dashboard is a front-end desktop application developed in python and tkinter. It allows the user to do a bunch of things, including:
 - Showing the picture/video stream sent by the camera service
 - Free guiding the drone
 - Simple flight planning
+- Creating a flight plan were images and pictures can be taken
 - Showing telemetry data
 - Starting/Stopping a LED sequence in the drone
 
@@ -27,7 +28,14 @@ The user guides the drone in different directions and returns to home.
 
 You can also play with a third option for flight planning (spiral) or to start/stop the monitor from the main pannel of the Dashboard, or to show the positions recorded by the data service in case it was asked to do so or to play with the LEDs service.
 
+## Demo flight plan
+
+This second video, aims to show the modifications made at the time of obtaining data during a flight, mainly images and videos. During all the execution, it can also be seen how the different communications are exchanged between Docker containers, which contain the different services that take part in the execution of a flight, changing the way these communications took part before.
+
+[Execution of flight in action] __Needs to be inserted new video__
+
 ## Installation and contribution
 In order to run and contribute to this module you need Pythion 3.7. We recommend PyCharm as IDE for development.
 To contribute to must follow the contribution protocol describen in the main repo of the Drone Engineering Ecosystem.
 [![DroneEngineeringEcosystem Badge](https://img.shields.io/badge/DEE-MainRepo-brightgreen.svg)](https://github.com/dronsEETAC/DroneEngineeringEcosystemDEE)
+
