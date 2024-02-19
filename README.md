@@ -1,5 +1,5 @@
 # Dashboard (Desktop Application)
-![dashboardDemo](https://github.com/JordiLlaveria/DashboardDEE/blob/manager/assets/FlightPlan.PNG)
+![FlightPlan](https://github.com/dronsEETAC/DashboardDEE/assets/100842082/76f5d3fc-f58b-4b54-9053-b9ba91224eb2)
 
 The Dashboard is a front-end desktop application developed in python and tkinter. It allows the user to do a bunch of things, including:
 - Showing the picture/video stream sent by the camera service
