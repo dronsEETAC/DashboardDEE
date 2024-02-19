@@ -30,9 +30,20 @@ You can also play with a third option for flight planning (spiral) or to start/s
 
 ## Demo flight plan
 
-This second video, aims to show the modifications made at the time of obtaining data during a flight, mainly images and videos. During all the execution, it can also be seen how the different communications are exchanged between Docker containers, which contain the different services that take part in the execution of a flight, changing the way these communications took part before.
+This second video, aims to show the modifications made at the time of obtaining data during a flight, mainly images and videos. During all the execution, the ground backend will be started, and it can also be seen how the different communications are exchanged between Docker containers, which contain the different services that take part in the execution of a flight, changing the way these communications took part before.
 
-[Execution of flight in action] __Needs to be inserted new video__
+[Execution of flight plan in action](https://www.youtube.com/watch?v=gr8pJP8eNJE&ab_channel=DronsEETAC)
+
+In the video:
+1. The ground backend is started.
+2. Docker containers are started in production mode, connected to external broker broker.hivemq.com.
+3. Connection to drone is done, allowing to start functionality "Fix waypoints by hand".
+4. Flight plan is created, saved into the ground backend using "Save to Db" button, and executed using "Run" button.
+5. The flight is monitored, and the exchange of information between Docker containers can be seen through RPi terminal
+6. Once the drone has ended the flight correctly, "Save Media" button is selected to flight information from air backend to ground backend
+7. Using the functionality "Previous flights", the results of the flight made, or any other desired, can be analyzed, allowing to watch the images and videos taken, obtained from the ground backend.
+
+
 
 ## Installation and contribution
 In order to run and contribute to this module you need Pythion 3.7. We recommend PyCharm as IDE for development.
